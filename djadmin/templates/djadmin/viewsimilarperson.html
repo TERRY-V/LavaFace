@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <!-- Page Description -->
+        {%block title %} {% endblock %}
+        {%block keywords %} {% endblock %}
+        {%block description %} {% endblock %}
+
+        <meta name="author" content="{{ site_info.site_author }}"/>
+        <meta name="copyright" content="{{ site_info.site_copyright }}"/>
+        
+        <link rel="shortcut icon" href="/static/images/favicon.ico">
+
+        <!-- Bootstrap 3.3.6 -->
+        <link rel="stylesheet" href="/static/djadmin/bootstrap/css/bootstrap.min.css">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+        <!-- Ionicons -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+        <!-- Theme style -->
+        <link rel="stylesheet" href="/static/djadmin/dist/css/AdminLTE.min.css">
+        <!-- AdminLTE Skins -->
+        <link rel="stylesheet" href="/static/djadmin/dist/css/skins/skin-blue.min.css">
+        <!-- Morris charts -->
+        <link rel="stylesheet" href="/static/djadmin/plugins/morris/morris.css">
+        <!-- Bootstrap Datepicker -->
+        <link rel="stylesheet" href="/static/djadmin/plugins/datepicker/datepicker3.css">
+        <!-- iCheck -->
+        <link rel="stylesheet" href="/static/djadmin/plugins/iCheck/flat/blue.css">
+
+        <!-- self-defined diadmin css -->
+        <link rel="stylesheet" href="/static/css/djadmin.css">
+
+        <!-- jQuery 2.2.3 -->
+        <script src="/static/djadmin/plugins/jQuery/jquery-2.2.3.min.js"></script>
+        <!-- bootstrap datepicker -->
+        <script src="/static/djadmin/plugins/datepicker/bootstrap-datepicker.js"></script>
+        <!-- iCheck -->
+        <script src="/static/djadmin/plugins/iCheck/icheck.min.js"></script>
+        <!-- Bootstrap 3.3.6 -->
+        <script src="/static/djadmin/bootstrap/js/bootstrap.min.js"></script>
+        <!-- AdminLTE App -->
+        <script src="/static/djadmin/dist/js/app.min.js"></script>
+        <!-- jQuery cookie plugins -->
+        <script src="/static/js/jquery/jquery.cookie.js"></script>
+        <!-- Layer -->
+        <script src="/static/js/layer/layer.js"></script>
+        <!-- CSRF -->
+        <script src="/static/js/media/csrf.js"></script>
+    </head>
+    <!--
+    BODY TAG OPTIONS:
+    =================
+    Apply one or more of the following classes to get the
+    desired effect
+    |---------------------------------------------------------|
+    | SKINS         | skin-blue                               |
+    |               | skin-black                              |
+    |               | skin-purple                             |
+    |               | skin-yellow                             |
+    |               | skin-red                                |
+    |               | skin-green                              |
+    |---------------------------------------------------------|
+    |LAYOUT OPTIONS | fixed                                   |
+    |               | layout-boxed                            |
+    |               | layout-top-nav                          |
+    |               | sidebar-collapse                        |
+    |               | sidebar-mini                            |
+    |---------------------------------------------------------|
+    -->
+    <body class="hold-transition skin-blue sidebar-mini">
+        <section class="content" style="background-color: #ecf0f5">
+            {% if messages %}
+                <div class="callout callout-info">
+                    <h4>提示！</h4>
+                    {% for message in messages %}
+                        <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+			<div class="merge-option text-center" style="margin: 10px 0">
+				<button type="submit" class="btn btn-success btn-sm merge-person">合并人物</button>
+			</div>
+
+            <div class="merge-person-list" style="margin: 10px 0">
+                <ul class="list-group person-list" person_id="{{ person.pid }}">
+					{% for person in persons %}
+						<li class="list-group-item" style="border: 1px dashed #8c2020;">
+							<div class="row row-md-flex-center">
+								<div class="col-xs-1">
+									<input type="checkbox" name="checkbox" value="{{ person.id_person }}">
+								</div>
+								<div class="col-xs-2">score：{{ person.score|floatformat:2 }}<br>percent：{{ person.percent|floatformat:2 }}</div>
+								<div class="col-xs-8">
+									<div class="row">
+										{% for image in person.images %}
+											<div class="col-xs-2">
+												<img src="{{ image }}" class="img-responsive">
+											</div>
+										{% endfor %}
+									</div>
+								</div>
+								<div class="col-xs-1">
+									<a href="/djadmin/person/{{ person.id }}/viewpersonfacetrack" class="btn btn-success btn-sm">更多</a>
+								</div>
+							</div>
+						</li>
+					{% endfor %}
+				</ul>
+            </div>
+
+            <div class="page-list" style="text-align: center">
+                <ul class="pagination no-margin">
+                    <li><span>查询到{{ query_num }}条记录</span></li>
+                </ul>
+            </div>
+
+            <script>
+                $(function () {
+                    $(".person-list").on("click", "img", function() {
+                        var imgurl = $(this).attr("src");
+                        var html = '<img src="' + imgurl + '" class="img-responsive" style="width: 100%;">'
+                        layer.open({
+                            type: 1,
+                            title: false,
+                            closeBtn: 0,
+                            area: '516px',
+                            skin: 'layui-layer-nobg',
+                            shadeClose: true,
+                            content: html
+                        });
+                    });
+
+					// merge person
+					$(".merge-option").on("click", ".merge-person", function() {
+						var checkBoxes = document.getElementsByName('checkbox');
+						var person_id = $(".person-list").attr("person_id");
+
+						var unitlist = [];
+						for(var i = 0 ; i < checkBoxes.length ; i++) {
+							unitlist[i] = {"id": checkBoxes[i].value, "status": 0};
+							if(checkBoxes[i].checked) {
+								unitlist[i].status = 1;
+							} else {
+								unitlist[i].status = 0;
+							}
+						}
+
+						$.post(
+							'/djadmin/person/' + person_id + '/mergeperson',
+							{data: JSON.stringify({'person_id': person_id, 'matches': unitlist})},
+							function(data) {
+								var status = data["status"];
+								if(status == 0) {
+									location.reload();
+								} else {
+									alert("Failed!");
+								}
+							}, "json"
+						);
+					});
+                });
+            </script>
+        </section>
+    </body>
+</html>
