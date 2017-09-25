@@ -7,7 +7,7 @@ urlpatterns = [
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^', include('usercenter.urls')),
-    url(r'^captcha/', include('captcha.urls')),
+    # url(r'^captcha/', include('captcha.urls')),
     url(r'^usercenter/', include('usercenter.urls')),
     url(r'^djadmin/', include('djadmin.urls')),
     url(r'^image/', include('image.urls')),

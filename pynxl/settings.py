@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'djadmin',
     'tasks',
     'usercenter',
-    'captcha',
+    # 'captcha',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -163,10 +163,11 @@ MAIL_PASSWORD = "123456"
 # System configuration
 
 # DEEP_FACE_URL = 'http://192.168.1.123:8000'
-DEEP_FACE_URL = 'http://192.168.1.145:8000'
+# DEEP_FACE_URL = 'http://192.168.1.145:8000'
 
-DEEP_FACE_HEADERS = {'content-type': 'application/json'}
+# DEEP_FACE_HEADERS = {'content-type': 'application/json'}
 
 # DEEP_FACE_APP_KEY = 'a8258655_4114_48e4_b274_00019a775d00'
-DEEP_FACE_APP_KEY = '273fbf7a_e1a2_47d3_a2ed_d02d14d27569'
+# DEEP_FACE_APP_KEY = '273fbf7a_e1a2_47d3_a2ed_d02d14d27569'
+# DEEP_FACE_APP_KEY = '017d3ced_d658_4d77_b27d_f8675fcee0c5'
 

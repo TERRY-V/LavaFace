@@ -101,10 +101,8 @@
                                     <a href="/djadmin/person/{{ person.id }}/change">编辑人物</a>
                                     &nbsp;
                                     <a href="javascript:void(0);" person-id="{{ person.id }}" class="show-facetrack">人物序列</a>
-                                    {% ifequal person.merge_flag 1 %}
-                                        &nbsp;
-                                        <a href="javascript:void(0);" person-id="{{ person.id }}" class="match-similar-person">检索相似</a>
-                                    {% endifequal %}
+									&nbsp;
+									<a href="javascript:void(0);" person-id="{{ person.id }}" class="match-similar-person">检索近似</a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -170,7 +168,7 @@
         $("a.match-similar-person").click(function() {
             $(this).css('color', 'red');
             var person_id = $(this).attr("person-id");
-            var url = 'http://lavaface.kalava.cn/djadmin/person/' + person_id + '/showsimilarperson';
+            var url = 'http://lavaface.kalava.cn/djadmin/person/' + person_id + '/viewsimilarperson';
             layer.open({
                 type: 2,
                 title: '相似人物',

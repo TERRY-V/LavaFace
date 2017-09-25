@@ -13,7 +13,7 @@ from django.utils.encoding import force_bytes
 from email.header import Header
 from email.mime.text import MIMEText
 
-from captcha.fields import CaptchaField
+# from captcha.fields import CaptchaField
 
 from usercenter.models import User
 

@@ -148,6 +148,7 @@ class Person(models.Model):
     age = models.IntegerField(u'年龄', null=True)
     remark = models.TextField(u'备注', null=True)
     facetracks_num = models.IntegerField(u'序列数', default = 0)
+    merge_flag = models.IntegerField(u'合并标记', default = 0)
     isdeleted = models.IntegerField(u'是否删除', default=0)
     created_time = models.DateTimeField(u'创建时间', auto_now_add=True)
 

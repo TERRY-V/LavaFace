@@ -75,7 +75,13 @@
                         <label>年龄</label>
                         <div class="row">
                             <div class="col-xs-4">
-                                <input type="text" class="form-control" name="age" placeholder="Enter ..." value="{{ person.age }}">
+								<select class="form-control" name="age">
+									<option value="0" {% ifequal person.age 0 %}selected{% endifequal %}>年龄段不详</option>
+									<option value="1" {% ifequal person.age 1 %}selected{% endifequal %}>未成年(0-17周岁)</option>
+									<option value="2" {% ifequal person.age 2 %}selected{% endifequal %}>青年(18-39周岁)</option>
+									<option value="3" {% ifequal person.age 3 %}selected{% endifequal %}>中年(40-59周岁)</option>
+									<option value="4" {% ifequal person.age 4 %}selected{% endifequal %}>老年(60周岁以上)</option>
+								</select>
                             </div>
                         </div>
                     </div>

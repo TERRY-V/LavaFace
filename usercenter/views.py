@@ -80,7 +80,7 @@ class UserCenter(View):
 
     def logout(self, request):
         auth.logout(request)
-        return HttpResponse({"status": 0})
+        return HttpResponse(json.dumps({"status": 0}, content_type="application/json"))
 
 def login(request):
     site_info = SiteInfo.objects.first()
@@ -203,7 +203,7 @@ def processTask(request, task_id):
             'menu_now': menu_now}
     return render(request, 'usercenter/processtask.html', context)
 
-@csrf_exempt
+@login_required(login_url='/usercenter/login')
 def allocateTask(request, task_id):
     context = {}
     context['status'] = 0
@@ -267,7 +267,7 @@ def allocateTask(request, task_id):
             )
     return HttpResponse(json.dumps(context), content_type="application/json")
 
-@csrf_exempt
+@login_required(login_url='/usercenter/login')
 def matchFacetrack2Person(request, task_id):
     context = {}
     context['status'] = 0
@@ -333,7 +333,7 @@ def matchFacetrack2Person(request, task_id):
                     if response['result']['code'] == 0:
                         person_match['images'] = []
                         for img in response['result']['results']['imgs']:
-                            url = '/image/?type=1&id=' + person_match['id_person'] + '&fn=' + img
+                            url = '/image/?type=1&id=' + person_match['id_person'] + '&fn=' + img['fn']
                             person_match['images'].append(url)
 
                         context['data'] = {
@@ -349,7 +349,7 @@ def matchFacetrack2Person(request, task_id):
 
     return HttpResponse(json.dumps(context), content_type="application/json")
 
-@csrf_exempt
+@login_required(login_url='/usercenter/login')
 def matchPerson2Facetrack(request, task_id):
     context = {}
     context['status'] = 0
@@ -420,7 +420,7 @@ def matchPerson2Facetrack(request, task_id):
 
     return HttpResponse(json.dumps(context), content_type="application/json")
 
-@csrf_exempt
+@login_required(login_url='/usercenter/login')
 def addFacetrack2Person(request, task_id):
     context = {}
     if request.method == 'POST':
@@ -459,7 +459,7 @@ def addFacetrack2Person(request, task_id):
         context['message'] = u'请求无效'
     return HttpResponse(json.dumps(context), content_type="application/json")
 
-@csrf_exempt
+@login_required(login_url='/usercenter/login')
 def addFacetrack2NewPerson(request, task_id):
     context = {}
     context['status'] = 0
@@ -519,7 +519,7 @@ def addFacetrack2NewPerson(request, task_id):
         context['message'] = u'请求无效'
     return HttpResponse(json.dumps(context), content_type="application/json")
 
-@csrf_exempt
+@login_required(login_url='/usercenter/login')
 def deleteFacetrackImg(request, task_id):
     context = {}
     if request.method == 'POST':
@@ -537,7 +537,7 @@ def deleteFacetrackImg(request, task_id):
         context['message'] = u'请求无效'
     return HttpResponse(json.dumps(context), content_type="application/json")
 
-@csrf_exempt
+@login_required(login_url='/usercenter/login')
 def deleteFacetrack(request, task_id):
     context = {}
     if request.method == 'POST':
@@ -575,7 +575,7 @@ def deleteFacetrack(request, task_id):
         context['message'] = u'请求无效'
     return HttpResponse(json.dumps(context), content_type="application/json")
 
-@csrf_exempt
+@login_required(login_url='/usercenter/login')
 def addFacetracks2Person(request, task_id):
     context = {}
     context['status'] = 0

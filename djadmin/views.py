@@ -643,7 +643,7 @@ def person(request):
     menu_list = MenuInfo.objects.order_by('menu_order')
     menu_now = get_object_or_404(MenuInfo, menu_link='/djadmin/person')
 
-    person_list = Person.objects.filter(isdeleted=0).filter(created_time__gte=datetime(2017, 5, 10)).order_by('-facetracks_num')
+    person_list = Person.objects.filter(isdeleted=0, merge_flag=1).filter(created_time__gte=datetime(2017, 5, 10)).order_by('-facetracks_num')
     keyword = request.GET.get('q')
     if keyword and len(keyword):
         person_list = person_list.filter(name__contains=keyword.encode('utf-8'))
@@ -784,18 +784,19 @@ def viewPersonFacetrack(request, person_id):
 def deletePersonFacetrack(request, person_id):
     http_referer_url = request.META.get('HTTP_REFERER')
     facetrack_id = request.GET.get('facetrack_id')
+    person = get_object_or_404(Person, id=person_id)
+
     payload = {
         "id": 1,
         "jsonrpc": "2.0",
         "method": "cancelfacetrackfromperson",
         "params": {
-            "appkey": settings.DEEP_FACE_APP_KEY,
+            "appkey": person.model.model_key,
             "id_facetrack": facetrack_id
         }
     }
-    response = requests.post(settings.DEEP_FACE_URL, data=json.dumps(payload), headers=settings.DEEP_FACE_HEADERS).json()
+    response = requests.post(person.model.model_url, data=json.dumps(payload), headers=json.loads(person.model.model_headers)).json()
     if response['result']['code'] <> 0:
-        print(response)
         messages.add_message(request, messages.INFO, u'删除FaceTrack序列失败，请联系系统管理员！')
         return redirect(http_referer_url)
     else:
@@ -804,6 +805,116 @@ def deletePersonFacetrack(request, person_id):
         facetrack.save()
         messages.add_message(request, messages.INFO, u'删除FaceTrack序列成功！')
         return redirect(http_referer_url)
+
+@staff_member_required(login_url='/djadmin/login')
+def viewSimilarPerson(request, person_id):
+    if len(person_id) >= 16:
+        person = get_object_or_404(Person, pid=person_id)
+    else:
+        person = get_object_or_404(Person, id=person_id)
+
+    payload = {
+        "id": 1,
+        "jsonrpc": "2.0",
+        "method": "matchperson2person",
+        "params": {
+            "appkey": person.model.model_key,
+            "id": person.pid,
+            "src_ids": []
+        }
+    }
+    response = requests.post(person.model.model_url, data=json.dumps(payload), headers=json.loads(person.model.model_headers)).json()
+    if response['result']['code'] == 0:
+        transaction_id = response['result']['results']['transId']
+
+        while True:
+            time.sleep(0.1)
+            payload = {
+	        "id": 1,
+                "jsonrpc": "2.0",
+	        "method": "getmatchperson2personresult",
+	        "params": {
+                    "appkey": person.model.model_key,
+                    "id_person": person.pid,
+                    "id_trans": transaction_id
+	        }
+	    }
+
+            response = requests.post(person.model.model_url, data=json.dumps(payload), headers=json.loads(person.model.model_headers)).json()
+	    if response['result']['results']['count'] == -1:
+                continue
+            else:
+                break
+
+	if response['result']['code'] == 0:
+            if response['result']['results']['count'] <> 0:
+                person_matched = response['result']['results']['matchs']
+                person_matched = person_matched[:10]
+            else:
+                person_matched = []
+            for person_match in person_matched:
+                person_match['id'] = Person.objects.get(pid=person_match['id_person']).id
+	        payload = {
+	            "id": 1,
+                    "jsonrpc": "2.0",
+	            "method": "getpersoninfo",
+	            "params": {
+	                "appkey": person.model.model_key,
+	                "id": person_match['id_person']
+	            }
+	        }
+	        response = requests.post(person.model.model_url, data=json.dumps(payload), headers=json.loads(person.model.model_headers)).json()
+                if response['result']['code'] == 0:
+                    person_match['images'] = []
+                    for idx, img in enumerate(response['result']['results']['imgs']):
+                        url = '/image/?type=1&id=' + person_match['id_person'] + '&fn=' + img['fn']
+                        person_match['images'].append(url)
+                        if idx >= 4:
+                            break
+
+    context = {'person': person,
+            'persons': person_matched,
+            'query_num': len(person_matched)}
+    return render(request, 'djadmin/viewsimilarperson.html', context)
+
+@staff_member_required(login_url='/djadmin/login')
+def mergePerson(request, person_id):
+    context = {}
+    context['status'] = 0
+    context['message'] = 'success'
+
+    if request.method == 'POST':
+        data = json.loads(request.POST.get('data'))
+
+        person = Person.objects.get(pid=person_id)
+        for record in data['matches']:
+            if record['status'] == 1:
+	        payload = {
+	            "id": 1,
+	            "jsonrpc": "2.0",
+	            "method": "mergepersons",
+	            "params": {
+	                "appkey": person.model.model_key,
+	                "id1": person.pid,
+                        "id2": record['id']
+	            }
+	        }
+	        response = requests.post(person.model.model_url, data=json.dumps(payload), headers=json.loads(person.model.model_headers)).json()
+                if response['result']['code'] == 0:
+                    facetracks = FaceTrack.objects.filter(person_id=record['id'])
+                    for facetrack in facetracks:
+                        facetrack.person_id = person_id
+                        facetrack.save()
+                    person_combined = Person.objects.get(pid=record['id'])
+                    person_combined.isdeleted = 1
+                    person_combined.save()
+                else:
+                    context['status'] = -1
+                    context['message'] = u'合并人物失败，请联系系统管理员！'
+    else:
+        context['status'] = -1
+        context['message'] = u'请求无效'
+    return HttpResponse(json.dumps(context), content_type="application/json")
 
 @staff_member_required(login_url='/djadmin/login')
 def statistics(request):
